@@ -2,18 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flores 🌹🌼</title>
-
+<title>Flores</title>
 <style>
-body {
-    margin: 0;
-    background: black;
-    overflow: hidden;
-}
-canvas {
-    display: block;
-}
+body { margin:0; background:black; overflow:hidden; }
+canvas { display:block; }
 </style>
 </head>
 <body>
@@ -30,14 +22,11 @@ canvas.height = window.innerHeight;
 ctx.lineJoin = "round";
 ctx.lineCap = "round";
 
-// 🔥 cargar JSON
 async function load(file){
     const res = await fetch(file);
-    if(!res.ok) throw new Error("No carga " + file);
     return res.json();
 }
 
-// preparar escala (igual que Python)
 function prepare(regions){
     let pts = regions.flatMap(r => r.contour);
 
@@ -46,107 +35,67 @@ function prepare(regions){
     let minY = Math.min(...pts.map(p => p[1]));
     let maxY = Math.max(...pts.map(p => p[1]));
 
-    let scale = Math.min(600/(maxX-minX), 600/(maxY-minY));
+    let scale = Math.min(500/(maxX-minX), 500/(maxY-minY));
     let cx = (minX + maxX)/2;
     let cy = (minY + maxY)/2;
 
     return {scale, cx, cy};
 }
 
-// dibujar región (igual que turtle)
-function drawRegion(region, prep, offsetX, offsetY, angle){
-    let rad = angle;
-
+function drawRegion(region, prep, ox, oy){
     ctx.fillStyle = `rgb(${region.color[0]},${region.color[1]},${region.color[2]})`;
 
     ctx.beginPath();
 
-    region.contour.forEach((p, i) => {
-        let x = (p[0] - prep.cx) * prep.scale;
-        let y = (prep.cy - p[1]) * prep.scale;
+    region.contour.forEach((p,i)=>{
+        let x = (p[0]-prep.cx)*prep.scale + ox;
+        let y = (prep.cy-p[1])*prep.scale + oy;
 
-        let rx = x * Math.cos(rad) - y * Math.sin(rad);
-        let ry = x * Math.sin(rad) + y * Math.cos(rad);
-
-        let px = rx + offsetX;
-        let py = ry + offsetY;
-
-        if(i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+        if(i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
     });
 
     ctx.closePath();
     ctx.fill();
 }
 
-let rosas = [];
-let girasoles = [];
-
 Promise.all([
-    load("./rosas.json"),
-    load("./sunflowers.json")
-])
-.then(data => {
+    load("rosas.json"),
+    load("sunflowers.json")
+]).then(([rosas, girasoles])=>{
 
-    console.log("JSON cargados correctamente");
-
-    rosas = data[0];
-    girasoles = data[1];
+    // 🔥 LIMITAR (CLAVE)
+    rosas = rosas.slice(0, 300);
+    girasoles = girasoles.slice(0, 200);
 
     let prepR = prepare(rosas);
     let prepS = prepare(girasoles);
 
     let angle = 0;
-    let index = 0;
-
-    let posiciones = [
-        [-220,120],
-        [220,120],
-        [0,-220],
-        [-150,-60],
-        [150,-60]
-    ];
 
     function loop(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
 
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.rotate(angle);
 
-        // 🌹 DIBUJO PROGRESIVO (clave para que no se congele)
-        for(let i = 0; i < index && i < rosas.length; i++){
-            let pos = posiciones[i % posiciones.length];
-            drawRegion(rosas[i], prepR, pos[0], pos[1], angle);
-        }
+        // 🌹 rosas
+        drawRegion(rosas[0], prepR, -200, 100);
+        drawRegion(rosas[1], prepR, 200, 100);
+        drawRegion(rosas[2], prepR, 0, -200);
 
-        // 🌼 GIRASOL después
-        if(index > 150){
-            for(let i = 0; i < girasoles.length && i < 300; i++){
-                drawRegion(girasoles[i], prepS, 0, 200, angle);
-            }
-        }
+        // 🌼 girasol
+        drawRegion(girasoles[0], prepS, 0, 200);
 
         ctx.restore();
 
         angle += 0.01;
 
-        // 🔥 velocidad controlada (NO subir mucho)
-        if(index < rosas.length){
-            index += 2;
-        }
-
         requestAnimationFrame(loop);
     }
 
     loop();
-})
-.catch(err => {
-    console.error("ERROR:", err);
-
-    document.body.innerHTML = `
-    <h1 style="color:white;text-align:center;margin-top:40vh;">
-    Error cargando JSON 😢
-    </h1>`;
 });
 </script>
 
