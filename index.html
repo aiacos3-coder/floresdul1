@@ -6,8 +6,14 @@
 <title>Flores 🌹🌼</title>
 
 <style>
-body { margin:0; background:black; overflow:hidden; }
-canvas { display:block; }
+body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+}
+canvas {
+    display: block;
+}
 </style>
 </head>
 <body>
@@ -24,10 +30,10 @@ canvas.height = window.innerHeight;
 ctx.lineJoin = "round";
 ctx.lineCap = "round";
 
-// 🔥 cargar JSON con control de error
+// 🔥 cargar JSON
 async function load(file){
     const res = await fetch(file);
-    if(!res.ok) throw new Error("No se pudo cargar " + file);
+    if(!res.ok) throw new Error("No carga " + file);
     return res.json();
 }
 
@@ -47,7 +53,7 @@ function prepare(regions){
     return {scale, cx, cy};
 }
 
-// dibujar UNA región
+// dibujar región (igual que turtle)
 function drawRegion(region, prep, offsetX, offsetY, angle){
     let rad = angle;
 
@@ -59,8 +65,8 @@ function drawRegion(region, prep, offsetX, offsetY, angle){
         let x = (p[0] - prep.cx) * prep.scale;
         let y = (prep.cy - p[1]) * prep.scale;
 
-        let rx = x*Math.cos(rad) - y*Math.sin(rad);
-        let ry = x*Math.sin(rad) + y*Math.cos(rad);
+        let rx = x * Math.cos(rad) - y * Math.sin(rad);
+        let ry = x * Math.sin(rad) + y * Math.cos(rad);
 
         let px = rx + offsetX;
         let py = ry + offsetY;
@@ -77,12 +83,12 @@ let rosas = [];
 let girasoles = [];
 
 Promise.all([
-    load("rosas.json"),
-    load("sunflowers.json")
+    load("./rosas.json"),
+    load("./sunflowers.json")
 ])
 .then(data => {
 
-    console.log("JSON cargados");
+    console.log("JSON cargados correctamente");
 
     rosas = data[0];
     girasoles = data[1];
@@ -107,15 +113,15 @@ Promise.all([
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
 
-        // 🔥 dibujar poco a poco (NO todo de golpe)
+        // 🌹 DIBUJO PROGRESIVO (clave para que no se congele)
         for(let i = 0; i < index && i < rosas.length; i++){
             let pos = posiciones[i % posiciones.length];
             drawRegion(rosas[i], prepR, pos[0], pos[1], angle);
         }
 
-        // 🌼 girasol después
-        if(index > 50){
-            for(let i = 0; i < girasoles.length && i < 200; i++){
+        // 🌼 GIRASOL después
+        if(index > 150){
+            for(let i = 0; i < girasoles.length && i < 300; i++){
                 drawRegion(girasoles[i], prepS, 0, 200, angle);
             }
         }
@@ -124,9 +130,9 @@ Promise.all([
 
         angle += 0.01;
 
-        // 🔥 incremento progresivo (clave para que no se congele)
+        // 🔥 velocidad controlada (NO subir mucho)
         if(index < rosas.length){
-            index += 5;
+            index += 2;
         }
 
         requestAnimationFrame(loop);
@@ -137,8 +143,10 @@ Promise.all([
 .catch(err => {
     console.error("ERROR:", err);
 
-    // mostrar error en pantalla
-    document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:40vh;'>Error cargando JSON</h1>";
+    document.body.innerHTML = `
+    <h1 style="color:white;text-align:center;margin-top:40vh;">
+    Error cargando JSON 😢
+    </h1>`;
 });
 </script>
 
