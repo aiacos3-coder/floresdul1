@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Flores</title>
+<title>Flores 💛</title>
 <style>
 body { margin:0; background:black; }
 canvas { display:block; }
@@ -16,28 +16,58 @@ canvas { display:block; }
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
-// tamaño fijo (IMPORTANTE)
 canvas.width = 800;
 canvas.height = 800;
 
-// prueba básica (si no ves esto, el problema es tu navegador)
-ctx.fillStyle = "white";
-ctx.fillRect(100,100,100,100);
+ctx.lineJoin = "round";
+ctx.lineCap = "round";
 
-// 🌼 flor simple
-function flower(x,y){
-    for(let i=0;i<12;i++){
+let angle = 0;
+
+// 🌸 flor tipo turtle
+function drawFlower(x,y,size,color){
+    ctx.save();
+    ctx.translate(x,y);
+
+    for(let i=0;i<20;i++){
+        ctx.rotate(Math.PI/10);
+
         ctx.beginPath();
-        ctx.arc(x,y+40,20,0,Math.PI*2);
-        ctx.fillStyle="yellow";
+        ctx.ellipse(0,size/2,size/4,size/2,0,0,Math.PI*2);
+        ctx.fillStyle=color;
         ctx.fill();
-        ctx.translate(x,y);
-        ctx.rotate(Math.PI/6);
-        ctx.translate(-x,-y);
     }
+
+    // centro
+    ctx.beginPath();
+    ctx.arc(0,0,size/3,0,Math.PI*2);
+    ctx.fillStyle="brown";
+    ctx.fill();
+
+    ctx.restore();
 }
 
-flower(400,400);
+function loop(){
+    ctx.clearRect(0,0,800,800);
+
+    ctx.save();
+    ctx.translate(400,400);
+    ctx.rotate(angle);
+
+    drawFlower(-200,100,80,"red");
+    drawFlower(200,100,80,"pink");
+    drawFlower(0,-200,80,"orange");
+
+    drawFlower(0,200,100,"yellow");
+
+    ctx.restore();
+
+    angle += 0.01;
+
+    requestAnimationFrame(loop);
+}
+
+loop();
 </script>
 
 </body>
